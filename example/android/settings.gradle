@@ -1,0 +1,5 @@
+rootProject.name = 'example'
+include ':react-native-custom-fonts'
+project(':react-native-custom-fonts').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-custom-fonts/android')
+
+include ':app'

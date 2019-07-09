@@ -1,0 +1,24 @@
+{
+  "name": "react-native-custom-fonts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "custom",
+    "font",
+    "fonts",
+    "text",
+    "dynamic",
+    "url",
+    "uri",
+    "network",
+    "remote"
+  ],
+  "author": "Alex Thomas (@cawfree) <hello@cawfree.com>",
+  "license": "MIT",
+  "private": false
+}
