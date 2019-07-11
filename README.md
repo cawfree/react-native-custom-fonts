@@ -54,7 +54,7 @@ export default ({ ...nextProps }) => (
     <Text
       style={{
         fontFamily: 'Ubuntu',
-        fontWeight: 'Normal',
+        fontWeight: 'normal',
         fontSize: 40,
       }}
     >
@@ -63,7 +63,7 @@ export default ({ ...nextProps }) => (
     <TextInput
       style={{
         fontFamily: 'Ubuntu',
-        fontWeight: 'Normal',
+        fontWeight: 'normal',
         fontSize: 40,
       }}
       placeholder="I work for TextInputs, too!"
