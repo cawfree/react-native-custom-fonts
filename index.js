@@ -24,7 +24,7 @@ const sanitizeFontFaces = (fontFaces = []) => fontFaces.reduce(
       {
         uri,
         fontFamily,
-        fontWeight: (Platform.OS === 'ios') ? fontWeight : fontWeight.toLowerCase(),
+        fontWeight: (Platform.OS === 'ios') ? w : w.toLowerCase(),
       },
     ];
   },
