@@ -1,7 +1,7 @@
 {
   "name": "react-native-custom-fonts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Use fonts specified via a network location, instead of managing them in your native builds!",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
