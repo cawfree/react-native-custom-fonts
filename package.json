@@ -1,6 +1,6 @@
 {
   "name": "react-native-custom-fonts",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Use fonts specified via a network location, instead of managing them in your native builds!",
   "main": "index.js",
   "scripts": {

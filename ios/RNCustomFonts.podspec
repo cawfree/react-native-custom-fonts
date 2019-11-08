@@ -4,11 +4,10 @@ Pod::Spec.new do |s|
   s.version      = "1.0.0"
   s.summary      = "RNCustomFonts"
   s.description  = <<-DESC
-                  RNCustomFonts
+                  Use fonts sourced from a network address.
                    DESC
-  s.homepage     = ""
+  s.homepage     = "https://github.com/cawfree/react-native-custom-fonts"
   s.license      = "MIT"
-  # s.license      = { :type => "MIT", :file => "FILE_LICENSE" }
   s.author             = { "author" => "author@domain.cn" }
   s.platform     = :ios, "7.0"
   s.source       = { :git => "https://github.com/author/RNCustomFonts.git", :tag => "master" }
