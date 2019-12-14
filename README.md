@@ -122,3 +122,13 @@ This is a React Context Provider for all children who were wrapped with a call t
 
 ## ✌️ License
 [MIT](https://opensource.org/licenses/MIT)
+
+## [@cawfree](https://twitter.com/cawfree)
+
+Open source takes a lot of work! If this project has helped you, please consider [buying me a coffee](https://www.buymeacoffee.com/cawfree). ☕ 
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/cawfree">
+    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy @cawfree a coffee" width="232" height="50" />
+  </a>
+</p>
