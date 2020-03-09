@@ -20,5 +20,10 @@
   ],
   "author": "Alex Thomas (@cawfree) <hello@cawfree.com>",
   "license": "MIT",
-  "private": false
+  "private": false,
+  "devDependencies": {
+    "prop-types": "^15.7.2",
+    "react": "^16.13.0",
+    "react-native": "^0.61.5"
+  }
 }
