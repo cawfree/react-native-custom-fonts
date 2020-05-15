@@ -1,5 +1,5 @@
 # react-native-custom-fonts
-Use fonts specified via a network location, instead of managing them in your native builds!
+Use dynamic fonts specified via a network location, instead of managing them in your native builds!
 
 <p align="center">
   <img src="./bin/out.gif" alt="react-native-custom-fonts" width="400" height="800">
@@ -26,14 +26,10 @@ react-native link react-native-custom-fonts
 
 ## Breaking Changes
 
-  - **1.1.0**
+  - **<1.2.0**
     - We've added a bunch of stability improvements, and migrated to a new [Hooks](https://reactjs.org/docs/hooks-intro.html)-based API.
     - The `fontFaces` array prop has been turned into a `fontFaces` object, whose keys are the _names_ of font styles you'd like to reference in your app.
     - To use a `fontFace`, you must specify the name in a call to `useCustomFont(name:String)`.
-
-## 😬 Contributing
-Please report any [issues](https://github.com/cawfree/react-native-custom-fonts/issues) you come across, and feel free to [submit a Pull Request](https://github.com/cawfree/react-native-custom-fonts/pulls) if you'd like to add any enhancements. To make any changes, you can just branch from  `master`.
-
 
 ## ✍️ Example 
 
@@ -140,6 +136,8 @@ This is a React Context Provider for all children who were wrapped with a call t
 | `onDownloadDidEnd`   | propTypes.func                                                                                                                                         | false    | () => null | Callback for when the Provider has completed downloading the fontFaces.                               |
 | `onDownloadDidError`   | propTypes.func                                                                                                                                         | false    | () => null | Called when an error has been thrown when downloading the fontFaces.                               |
 
+## 😬 Contributing
+Please report any [issues](https://github.com/cawfree/react-native-custom-fonts/issues) you come across, and feel free to [submit a Pull Request](https://github.com/cawfree/react-native-custom-fonts/pulls) if you'd like to add any enhancements. To make any changes, you can just branch from  `master`.
 
 ## ✌️ License
 [MIT](https://opensource.org/licenses/MIT)
