@@ -1,282 +1,169 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import {
-  Animated,
-  Platform,
-  Text,
-  TextInput,
-  findNodeHandle,
-  NativeModules,
-} from 'react-native';
+import React, {useContext, useEffect, useState, useRef} from "react";
+import PropTypes from "prop-types";
+import {typeCheck} from "type-check";
+import {Platform, findNodeHandle, NativeModules} from "react-native";
 
-const { RNCustomFonts } = NativeModules;
+const {RNCustomFonts} = NativeModules;
 
-const CustomFontsContext = React.createContext(
-  null,
-);
+const throwOnInvalidUri = (uri) => {
+  if (!typeCheck("String", uri) || uri.length <= 0) {
+    throw new Error(`Expected String uri, encountered ${uri}.`);
+  }
+  return `${uri}`;
+};
 
-const sanitizeFontFaces = (fontFaces = []) => fontFaces.reduce(
-  (arr, { uri, fontFamily, fontWeight }) => {
-    // TODO: throw on unspecified here!
-    const w = fontWeight || 'Normal';
-    return [
-      ...arr,
-      {
-        uri,
-        fontFamily,
-        fontWeight: (Platform.OS === 'ios') ? w : w.toLowerCase(),
-      },
-    ];
-  },
-  [],
-);
+const throwOnInvalidFontFamily = (fontFamily) => {
+  if (!typeCheck("String", fontFamily) || fontFamily.length <= 0) {
+    throw new Error(`Expected String fontFamily, encountered ${fontFamily}.`);
+  }
+  return `${fontFamily}`;
+};
 
-class CustomFontsProvider extends React.Component {
-  constructor(props) {
-    super(props);
-    this.__onRequestFontFamily = this.__onRequestFontFamily.bind(this);
+const throwOnInvalidFontWeight = (fontWeight) => {
+  if (typeCheck("String", fontWeight) && fontWeight.length >= 0) {
+    return `${fontWeight}`;
+  } else if (fontWeight === undefined) {
+    return 'Normal';
   }
-  async componentDidMount() {
-    const {
-      fontFaces,
-      onDownloadDidStart,
-      onDownloadDidEnd,
-      onDownloadDidError,
-    } = this.props;
-    if (fontFaces && fontFaces.length > 0) {
-      onDownloadDidStart();
-      return RNCustomFonts
-        .onFontFacesChanged(
-          sanitizeFontFaces(
-            fontFaces,
-          ),
-        )
-        .then(onDownloadDidEnd)
-        .catch(onDownloadDidError);
-    }
-    return Promise.resolve();
-  }
-  async componentWillUpdate(nextProps, nextState) {
-    const {
-      fontFaces,
-      onDownloadDidStart,
-      onDownloadDidEnd,
-      onDownloadDidError,
-    } = nextProps;
-    const fontFacesDidChange = fontFaces !== this.props.fontFaces;
-    if (fontFacesDidChange) {
-      onDownloadDidStart();
-      return RNCustomFonts
-        .onFontFacesChanged(
-          sanitizeFontFaces(
-            fontFaces,
-          ),
-        )
-        .then(onDownloadDidEnd)
-        .catch(onDownloadDidError);
-    }
-    return Promise.resolve();
-  }
-  __isFontFamilyKnown(fontFamily) {
-    const { fontFaces } = this.props;
-    return (fontFaces || [])
-      .reduce(
-        (known, fontFace) => {
-          if (typeof fontFace === 'object') {
-            const {
-              fontFamily: font,
-              uri,
-            } = fontFace;
-            return (known || (fontFamily === font));
-          }
-          return known;
-        },
-        false,
-      );
-  }
-  __onRequestFontFamily(ref, fontFamily, fontWeight) {
-    const { latency } = this.props;
-    return Promise.resolve()
-      .then(() => {
-        if (this.__isFontFamilyKnown(fontFamily)) {
-          // XXX: Android does not obey the handle until after a render timeout.
-          // TODO: How to enforce determinism?
-          return new Promise(resolve => setTimeout(resolve, latency))
-            .then(() => {
-              return RNCustomFonts
-                .onRequestFontFamily(
-                  findNodeHandle(
-                    ref,
-                  ),
-                  fontFamily,
-                  fontWeight,
-                );
-            })
-            .then(() => this.setState({}));
-        }
-        return Promise.reject(
-          new Error(
-            `Have requested fontFamily "${fontFamily}", but it does not exist. You should add the declaration to the CustomFontProvider's fontFaces prop.`,
-          ),
-        );
-      });
-  }
-  render() {
-    const {
-      children,
-      fontFaces,
-      fadeDuration,
-      ...extraProps
-    } = this.props;
-    return (
-      <CustomFontsContext.Provider
-        value={{
-          requestFontFamily: this.__onRequestFontFamily,
-          fadeDuration,
-        }}
-      >
-        {children}
-      </CustomFontsContext.Provider>
-    );
-  }
+  throw new Error(`Expected non-empty String or undefined fontWeight, encountered ${fontWeight}.`);
 }
 
+const modulateFontWeight = fontWeight => (Platform.OS === 'ios') ? fontWeight : fontWeight.toLowerCase();
+
+const defaultFontFaces = Object.freeze({});
+
+const defaultFallback = Object.freeze({
+  color: '#000000',
+  fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'Roboto',
+  fontWeight: modulateFontWeight('normal'),
+});
+
+const defaultContext = Object.freeze({
+  fontFaces: defaultFontFaces,
+  fallback: defaultFallback,
+});
+
+const CustomFontsContext = React.createContext(defaultContext);
+
+const sanitizeFontFaces = (fontFaces = {}) => Object
+  .fromEntries(
+    Object.entries(fontFaces)
+      .map(
+        ([k, {uri, fontFamily, fontWeight, ...extras}]) => [
+          k,
+          {
+            uri: throwOnInvalidUri(uri),
+            fontFamily: throwOnInvalidFontFamily(fontFamily),
+            fontWeight: modulateFontWeight(throwOnInvalidFontWeight(fontWeight)),
+            ...extras,
+          },
+        ],
+      ),
+  );
+
+const CustomFontsProvider = ({ children, fontFaces, fallback, onDownloadDidStart, onDownloadDidEnd, onDownloadDidError, ...extraProps }) => {
+  const [state, setState] = useState(defaultContext);
+  useEffect(
+    () => {
+      const nextState = Object.freeze({
+        fontFaces: sanitizeFontFaces(fontFaces),
+        fallback: Object.freeze(fallback),
+      });
+      onDownloadDidStart();
+      return RNCustomFonts
+        .onFontFacesChanged(Object.values(nextState.fontFaces))
+        .then(() => setState(nextState))
+        .then(onDownloadDidEnd)
+        .catch(
+          (e) => {
+            if (__DEV__) {
+              console.warn(`Failed to load fonts.`);
+            }
+            setState(defaultContext);
+            return onDownloadDidError(e);
+          },
+        ) && undefined;
+    },
+    [fontFaces, onDownloadDidStart, onDownloadDidEnd, onDownloadDidError, fallback, setState],
+  );
+  return (
+    <CustomFontsContext.Provider
+      value={state}
+      children={children}
+    />
+  );
+};
+
+const getSafeCustomStyle = ({uri, fontFamily, fontWeight, ...extras}) => {
+  if (Platform.OS === 'ios') {
+    return {
+      fontFamily,
+      fontWeight,
+      ...extras,
+    };
+  }
+  // XXX: This is a hack; Android does not play nicely with conflicting font assignments.
+  //      These override our direct calls to setTypeface().
+  return extras;
+};
+
+export const useCustomFont = (name, ref = undefined) => {
+  const context = useContext(CustomFontsContext);
+  const [style, setStyle] = useState(fallback);
+
+  // XXX: Evaluate fonts.
+  const {fontFaces, fallback} = context;
+  const {[name]: fontFace} = fontFaces;
+  const hasCustomFontFace = typeCheck("Object", fontFace);
+
+  // XXX: Evaluate refs.
+  const localRef = useRef();
+  const resolvedRef = ref || localRef;
+
+  useEffect(
+    () => {
+      if (hasCustomFontFace) {
+        const {fontFamily, fontWeight} = fontFace;
+        return RNCustomFonts
+          .onRequestFontFamily(
+            findNodeHandle(resolvedRef.current),
+            fontFamily,
+            fontWeight,
+          )
+          .then(() => setStyle(getSafeCustomStyle(fontFace)))
+          .catch(
+            (e) => {
+              console.error(e);
+              setStyle(fallback);
+            },
+          )&& undefined;
+      }
+      setStyle(fallback);
+      return undefined;
+    },
+    [resolvedRef, fallback, name, fontFaces, fontFace, hasCustomFontFace, setStyle],
+  );
+
+  return {
+    style,
+    ref: resolvedRef,
+  };
+};
+
 CustomFontsProvider.propTypes = {
-  fontFaces: PropTypes.arrayOf(
-    PropTypes.shape({}),
-  ),
-  latency: PropTypes.number,
-  fadeDuration: PropTypes.number,
+  fontFaces: PropTypes.shape({}),
+  fallback: PropTypes.shape({}),
   onDownloadDidStart: PropTypes.func,
   onDownloadDidEnd: PropTypes.func,
+  onDownloadDidError: PropTypes.func,
 };
 
 CustomFontsProvider.defaultProps = {
-  fontFaces: [],
-  fadeDuration: 250,
-  latency: 50,
+  fontFaces: defaultFontFaces,
+  fallback: defaultFallback,
   onDownloadDidStart: () => null,
   onDownloadDidEnd: () => null,
   onDownloadDidError: () => null,
 };
 
-const withCustomFont = FontConsumer => {
-  class CustomFontConsumer extends React.Component {
-    static contextType = CustomFontsContext;
-    constructor(props) {
-      super(props);
-      this.__onRef = this.__onRef.bind(this);
-      this.__onLayout = this.__onLayout.bind(this);
-      this.state = {
-        child: null,
-        animOpacity: new Animated.Value(1),
-        fontStyle: {},
-      };
-    }
-    async componentWillUpdate(nextProps, nextState) {
-      const {
-        style,
-      } = nextProps;
-      const resolvedStyle = style || {};
-      const {
-        fontFamily,
-        // TODO: Implement support.
-        fontWeight,
-      } = resolvedStyle;
-      const {
-        requestFontFamily,
-        fadeDuration,
-      } = this.context;
-      const { child } = nextState;
-      const didReceiveChild = child && !this.state.child;
-      const didChangeFontFamily = fontFamily !== (this.props.style || {}).fontFamily;
-      const didChangeFontWeight = fontWeight !== (this.props.style || {}).fontWeight;
-      if ((fontFamily && child) && (didReceiveChild || didChangeFontFamily || didChangeFontWeight)) {
-        return Promise.resolve()
-          .then(() => requestFontFamily(
-            child,
-            fontFamily,
-            fontWeight,
-          ))
-          .then(() => this.__shouldAnimateOpacity(Platform.OS === 'ios' ? 0 : 1, fadeDuration))
-          .then(() => new Promise(resolve => this.setState({
-            fontStyle: {
-              fontWeight: Platform.OS === 'ios' ? fontWeight : undefined,
-              fontFamily: Platform.OS === 'ios' ? fontFamily : undefined,
-            },
-          }, resolve)))
-          .then(() => this.__shouldAnimateOpacity(1, fadeDuration))
-          // TODO: Implement a catch here.
-      }
-      return Promise.resolve();
-    }
-    __shouldAnimateOpacity(toValue, duration) {
-      const { animOpacity } = this.state;
-      return new Promise(resolve => Animated.timing(
-        animOpacity,
-        {
-          toValue,
-          duration,
-          useNativeDriver: true,
-        },
-      ).start(resolve));
-    }
-    __onRef(child) {
-      this.setState(
-        {
-          child,
-        },
-      );
-    }
-    __onLayout(e) {
-
-    }
-    render() {
-      const {
-        style,
-        ...extraProps
-      } = this.props;
-      const resolvedStyle = style || {};
-      const {
-        fontFamily,
-        fontWeight,
-        ...extraStyles
-      } = resolvedStyle;
-      const {
-        animOpacity,
-        fontStyle,
-      } = this.state;
-      return (
-        <Animated.View
-          style={{
-            opacity: animOpacity,
-          }}
-        >
-          <FontConsumer
-            style={{
-              ...extraStyles,
-              ...fontStyle,
-            }}
-            onLayout={this.__onLayout}
-            ref={this.__onRef}
-            {...extraProps}
-          />
-        </Animated.View>
-      );
-    }
-  };
-  CustomFontConsumer.propTypes = {
-    style: PropTypes.shape({}),
-  };
-  CustomFontConsumer.defaultProps = {
-    style: {},
-  };
-  return CustomFontConsumer;
-};
-
-module.exports = {
-  CustomFontsProvider,
-  withCustomFont,
-  TextInput: withCustomFont(TextInput),
-  Text: withCustomFont(Text),
-};
+export default CustomFontsProvider;
