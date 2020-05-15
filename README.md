@@ -44,6 +44,9 @@ react-native run-android # run on android
 react-native run-ios     # run on ios
 ```
 
+
+### Simple <Text />
+
 ```javascript
 import React from "react";
 import PropTypes from "prop-types";
@@ -85,7 +88,7 @@ export default () => (
 
 `react-native-custom-fonts` captures the `ref` prop of the `Text` component to make runtime property assignment. You can still access the ref, in one of two ways:
 
-You can **supply a ref**:
+You can either **supply a ref**:
 
 ```javascript
 const ref = useRef();
@@ -98,7 +101,7 @@ return (
 );
 ```
 
-You can **use the provided ref**:
+Or you can **use the provided ref**:
 
 ```javascript
 const {ref, ...fontProps} = useCustomFont('UbuntuBold');
@@ -110,7 +113,7 @@ return (
 );
 ```
 
-### How about additional styles?
+### Awesome, so what about additional styles?
 
 It's possible to do this, too. Just fetch the `style` prop from the call to `useCustomFont`:
 
@@ -124,10 +127,6 @@ return (
 );
 ```
 
-## 🎣 Hooks
-
-`useCustomFont(name:String, fallback:style)`
-
 ## 📌 Prop Types
 
 ### `CustomFontsProvider`
@@ -139,6 +138,7 @@ This is a React Context Provider for all children who were wrapped with a call t
 | `fallback`          | propTypes.shape({}) | false    | {color: 'red', fontWeight:'bold'}         | The style to use when font downloads fail.                                                           |
 | `onDownloadDidStart` | propTypes.func                                                                                                                                         | false    | () => null | Callback for when the Provider begins downloading the fontFaces.                                      |
 | `onDownloadDidEnd`   | propTypes.func                                                                                                                                         | false    | () => null | Callback for when the Provider has completed downloading the fontFaces.                               |
+| `onDownloadDidError`   | propTypes.func                                                                                                                                         | false    | () => null | Called when an error has been thrown when downloading the fontFaces.                               |
 
 
 ## ✌️ License
